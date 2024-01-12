@@ -33,13 +33,13 @@ import androidx.compose.ui.unit.sp
 import com.s4mkoff.weatherapp.R
 import com.s4mkoff.weatherapp.ui.components.SearchBar
 import com.s4mkoff.weatherapp.ui.components.WeatherCard
-import com.s4mkoff.weatherapp.viewmodels.WeatherViewModel
+import com.s4mkoff.weatherapp.viewmodels.WeathersViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.s4mkoff.weatherapp.data.WeatherCodeHelpers
 
 @Composable
-fun MainScreen(
-    viewModel: WeatherViewModel = viewModel()
+fun MainScreen1(
+    viewModel: WeathersViewModel = viewModel()
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -445,5 +445,5 @@ fun MainScreen(
 @Preview
 @Composable
 fun MainScreenPrev() {
-    MainScreen()
+    MainScreen1()
 }

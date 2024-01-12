@@ -1,4 +1,4 @@
-package com.s4mkoff.weatherapp.data.models
+package com.s4mkoff.weatherapp.features.weather.domain.model.weather
 
 data class WeatherModel(
     val current: Current,

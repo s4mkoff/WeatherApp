@@ -1,4 +1,4 @@
-package com.s4mkoff.weatherapp.data.models
+package com.s4mkoff.weatherapp.features.weather.domain.model.weather
 
 data class Daily(
     val daylight_duration: List<Double>,

@@ -1,6 +1,6 @@
 package com.s4mkoff.weatherapp.data
 
-import com.s4mkoff.weatherapp.data.models.WeatherModel
+import com.s4mkoff.weatherapp.features.weather.domain.model.weather.WeatherModel
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import retrofit2.Retrofit

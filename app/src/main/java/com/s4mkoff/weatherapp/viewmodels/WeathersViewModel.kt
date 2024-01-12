@@ -15,10 +15,12 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.s4mkoff.weatherapp.data.WeatherApi
-import com.s4mkoff.weatherapp.data.models.WeatherModel
+import com.s4mkoff.weatherapp.features.weather.domain.model.weather.WeatherModel
 import kotlinx.coroutines.launch
 
-class WeatherViewModel(context: Context): ViewModel() {
+class WeathersViewModel(context: Context): ViewModel() {
+
+
 
     var weather: WeatherModel? by mutableStateOf(null)
     var locality by mutableStateOf("")
