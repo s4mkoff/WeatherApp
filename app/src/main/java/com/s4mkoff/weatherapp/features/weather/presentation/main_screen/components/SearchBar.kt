@@ -1,4 +1,4 @@
-package com.s4mkoff.weatherapp.ui.components
+package com.s4mkoff.weatherapp.features.weather.presentation.main_screen.components
 
 import android.content.Context
 import androidx.compose.foundation.layout.fillMaxWidth

@@ -33,8 +33,8 @@ import com.s4mkoff.weatherapp.R
 import com.s4mkoff.weatherapp.WeatherApp
 import com.s4mkoff.weatherapp.data.WeatherCodeHelpers
 import com.s4mkoff.weatherapp.features.weather.presentation.util.NetworkState
-import com.s4mkoff.weatherapp.ui.components.SearchBar
-import com.s4mkoff.weatherapp.ui.components.WeatherCard
+import com.s4mkoff.weatherapp.features.weather.presentation.main_screen.components.SearchBar
+import com.s4mkoff.weatherapp.features.weather.presentation.main_screen.components.WeatherCard
 
 @Composable
 fun MainScreen(

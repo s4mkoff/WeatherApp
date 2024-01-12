@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Criteria
 import android.location.Location
 import android.location.LocationManager
 import android.os.Looper
@@ -17,6 +18,7 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationToken
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.OnTokenCanceledListener
+import com.google.android.gms.tasks.Task
 import com.s4mkoff.weatherapp.features.weather.domain.repository.LocationRepository
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -39,17 +41,29 @@ class LocationRepositoryImpl(
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ||
                 locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-        if(!hasAccessCoarseLocationPermission || !hasAccessFineLocationPermission || !isGpsEnabled) {
+        if (!hasAccessCoarseLocationPermission || !hasAccessFineLocationPermission || !isGpsEnabled) {
             return null
         }
-        return suspendCoroutine {cnt ->
-            locationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, CancellationTokenSource().token).apply {
-                if (this.isComplete) {
-                    cnt.resume(this.result)
-                    Log.v("RepositoryLocation", "$result")
+        return suspendCancellableCoroutine { cont ->
+            locationClient.lastLocation.apply {
+                if(isComplete) {
+                    if(isSuccessful) {
+                        cont.resume(result)
+                    } else {
+                        cont.resume(result)
+                    }
+                    return@suspendCancellableCoroutine
+                }
+                addOnSuccessListener {
+                    cont.resume(it)
+                }
+                addOnFailureListener {
+                    cont.resume(null)
+                }
+                addOnCanceledListener {
+                    cont.cancel()
                 }
             }
         }
-
     }
 }

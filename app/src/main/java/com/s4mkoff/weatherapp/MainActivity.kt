@@ -31,7 +31,6 @@ import com.s4mkoff.weatherapp.features.weather.presentation.main_screen.WeatherV
 import com.s4mkoff.weatherapp.features.weather.presentation.util.LoadingState
 import com.s4mkoff.weatherapp.features.weather.presentation.util.NetworkState
 import com.s4mkoff.weatherapp.ui.theme.WeatherAppTheme
-import com.s4mkoff.weatherapp.viewmodels.WeathersViewModel
 
 class MainActivity : ComponentActivity() {
 

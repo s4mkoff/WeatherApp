@@ -1,4 +1,4 @@
-package com.s4mkoff.weatherapp.ui.components
+package com.s4mkoff.weatherapp.features.weather.presentation.main_screen.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
