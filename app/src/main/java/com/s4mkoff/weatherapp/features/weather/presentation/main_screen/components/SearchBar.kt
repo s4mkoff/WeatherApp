@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -21,6 +22,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -32,22 +35,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBar(
     modifier: Modifier = Modifier,
-    onSearch: (String, Context) -> Unit
+    onSearch: (String, Context) -> Unit,
+    clearFocus: () -> Unit
 ) {
     var textFieldValue by remember { mutableStateOf("") }
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
     val context = LocalContext.current
-    val keyboardController = LocalSoftwareKeyboardController.current
     TextField(
         modifier = modifier
             .fillMaxWidth()
-            .padding(8.dp)
-            .focusRequester(focusRequester),
+            .padding(8.dp),
         textStyle = LocalTextStyle.current.copy(
             textAlign = TextAlign.Center),
         shape = CircleShape,
@@ -63,8 +63,7 @@ fun SearchBar(
             onSearch = {
                 onSearch(textFieldValue, context)
                 textFieldValue = ""
-                keyboardController?.hide()
-                focusManager.clearFocus()
+                clearFocus()
             }
         ),
         placeholder = {

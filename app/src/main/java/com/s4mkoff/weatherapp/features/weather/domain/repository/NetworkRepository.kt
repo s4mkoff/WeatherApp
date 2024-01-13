@@ -1,5 +1,10 @@
 package com.s4mkoff.weatherapp.features.weather.domain.repository
 
-interface NetworkRepository {
+import com.s4mkoff.weatherapp.features.weather.domain.util.LoadingState
 
+interface NetworkRepository {
+    fun registerNetworkService(
+        locationPermission: Boolean,
+        getWeatherFunction: () -> Unit
+    )
 }

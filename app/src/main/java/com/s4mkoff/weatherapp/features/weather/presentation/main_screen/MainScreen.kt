@@ -1,7 +1,9 @@
 package com.s4mkoff.weatherapp.features.weather.presentation.main_screen
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,11 +21,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,8 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.s4mkoff.weatherapp.R
 import com.s4mkoff.weatherapp.WeatherApp
-import com.s4mkoff.weatherapp.data.WeatherCodeHelpers
-import com.s4mkoff.weatherapp.features.weather.presentation.util.NetworkState
+import com.s4mkoff.weatherapp.features.weather.domain.model.MyWeather
+import com.s4mkoff.weatherapp.features.weather.domain.util.NetworkState
 import com.s4mkoff.weatherapp.features.weather.presentation.main_screen.components.SearchBar
 import com.s4mkoff.weatherapp.features.weather.presentation.main_screen.components.WeatherCard
 
@@ -41,15 +48,27 @@ fun MainScreen(
     state: WeatherState,
     getWeatherByCity: (String) -> Unit
 ) {
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures {
+                    focusManager.clearFocus()
+                }
+            }
     ) {
         Box(
             modifier = Modifier.weight(1f),
             contentAlignment = Alignment.BottomCenter
         ) {
             Image(
-                painter = painterResource(id = R.drawable.background_day),
+                painter = painterResource(
+                    id = if (
+                        (state.weather?.current?.is_day ?: 1) == 1
+                    ) R.drawable.background_day else R.drawable.background_night
+                ),
                 contentDescription = "background",
                 contentScale = ContentScale.FillBounds,
             )
@@ -60,6 +79,8 @@ fun MainScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.TopCenter)
+                    .focusRequester(focusRequester),
+                clearFocus = { focusManager.clearFocus() }
             )
             Row(
                 modifier = Modifier
@@ -73,11 +94,12 @@ fun MainScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Log.v("WeatherState", "State: ${state.loading}")
                 if (
                     state.weather != null
                 ) {
                     Text(
-                        text = WeatherCodeHelpers().formatTime(
+                        text = MyWeather.WeatherHelper.formatTime(
                             state.weather.current.time.toLong(),
                             "General"
                         ),
@@ -137,7 +159,7 @@ fun MainScreen(
                     ) {
                         Image(
                             painter = painterResource(
-                                id = WeatherCodeHelpers().weatherCodeToResId(
+                                id = MyWeather.WeatherHelper.weatherCodeToResId(
                                     weatherCode = state.weather.current.weather_code,
                                     isDay = state.weather.current.is_day
                                 )
@@ -147,8 +169,8 @@ fun MainScreen(
                                 .size(40.dp)
                         )
                         Text(
-                            text = WeatherCodeHelpers().weatherCodeToString(
-                                weatherCode = state.weather.current.weather_code
+                            text = MyWeather.WeatherHelper.weatherCode(
+                                state.weather.current.weather_code
                             ),
                             fontSize = 18.sp,
                             fontWeight = FontWeight(500),
@@ -323,7 +345,7 @@ fun MainScreen(
                             tint = Color(0xFFAAAAAA)
                         )
                         Text(
-                            text = WeatherCodeHelpers().formatTime(
+                            text = MyWeather.WeatherHelper.formatTime(
                                 state.weather.daily.sunrise[0].toLong(),
                                 "Sun"
                             ),
@@ -351,7 +373,7 @@ fun MainScreen(
                             tint = Color(0xFFAAAAAA)
                         )
                         Text(
-                            text = WeatherCodeHelpers().formatTime(
+                            text = MyWeather.WeatherHelper.formatTime(
                                 state.weather.daily.sunset[0].toLong(),
                                 "Sun"
                             ),
@@ -379,7 +401,7 @@ fun MainScreen(
                             tint = Color(0xFFAAAAAA)
                         )
                         Text(
-                            text = WeatherCodeHelpers().formatSecondsToHoursMinutes(
+                            text = MyWeather.WeatherHelper.formatSecondsToHoursMinutes(
                                 state.weather.daily.daylight_duration[0]
                             ),
                             fontSize = 16.sp,
@@ -404,11 +426,11 @@ fun MainScreen(
                 ) {
                     items(state.weather.daily.temperature_2m_min.size) {
                         WeatherCard(
-                            imageId = WeatherCodeHelpers().weatherCodeToResId(
+                            imageId = MyWeather.WeatherHelper.weatherCodeToResId(
                                 weatherCode = state.weather.daily.weather_code[it],
                                 isDay = state.weather.current.is_day
                             ),
-                            date = WeatherCodeHelpers().formatTime(
+                            date = MyWeather.WeatherHelper.formatTime(
                                 condition = "Card",
                                 time = state.weather.daily.time[it].toLong()
                             ),

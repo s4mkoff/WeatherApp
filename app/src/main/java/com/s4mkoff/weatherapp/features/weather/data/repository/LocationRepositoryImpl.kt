@@ -1,28 +1,24 @@
 package com.s4mkoff.weatherapp.features.weather.data.repository
 
 import android.Manifest
-import android.app.Application
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
-import android.location.Criteria
 import android.location.Location
 import android.location.LocationManager
 import android.os.Looper
 import android.util.Log
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationToken
 import com.google.android.gms.tasks.CancellationTokenSource
-import com.google.android.gms.tasks.OnTokenCanceledListener
-import com.google.android.gms.tasks.Task
 import com.s4mkoff.weatherapp.features.weather.domain.repository.LocationRepository
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class LocationRepositoryImpl(
     private val locationClient: FusedLocationProviderClient,
@@ -43,7 +39,6 @@ class LocationRepositoryImpl(
         if (!hasAccessCoarseLocationPermission || !hasAccessFineLocationPermission || !isGpsEnabled) {
             return null
         }
-
         return suspendCancellableCoroutine { cont ->
             locationClient.lastLocation.apply {
                 if(isComplete) {
@@ -65,5 +60,27 @@ class LocationRepositoryImpl(
                 }
             }
         }
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun updateLocation(
+        onLocationResult: () -> Unit
+    ) {
+        val locationCallback = object : LocationCallback() {
+            override fun onLocationResult(p0: LocationResult) {
+                onLocationResult()
+            }
+        }
+        val locationRequests = LocationRequest
+            .Builder(1)
+            .setIntervalMillis(0)
+            .setMaxUpdates(1)
+            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+            .build()
+        locationClient.requestLocationUpdates(
+            locationRequests,
+            locationCallback,
+            Looper.getMainLooper()
+        )
     }
 }
