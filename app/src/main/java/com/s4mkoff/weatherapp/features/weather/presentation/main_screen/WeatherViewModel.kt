@@ -30,10 +30,10 @@ class WeatherViewModel(
         getWeatherJob = CoroutineScope(Dispatchers.IO).launch {
             weatherUseCase.getWeatherByLocationUseCase().apply {
                 _state.value = state.value.copy(
-                    weather = this,
+                    weather = this.weather,
                     loading = if (this!=null) LoadingState.SUCCESS else LoadingState.ERROR,
-                    cityName = "",
-                    countryName = ""
+                    cityName = this.cityName,
+                    countryName = this.locationName
                 )
             }
         }

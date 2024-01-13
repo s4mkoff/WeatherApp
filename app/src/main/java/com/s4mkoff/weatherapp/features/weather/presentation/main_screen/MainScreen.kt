@@ -38,7 +38,8 @@ import com.s4mkoff.weatherapp.features.weather.presentation.main_screen.componen
 
 @Composable
 fun MainScreen(
-    viewModel: WeatherViewModel
+    state: WeatherState,
+    getWeatherByCity: (String) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -53,8 +54,8 @@ fun MainScreen(
                 contentScale = ContentScale.FillBounds,
             )
             SearchBar(
-                onSearch = { city, ctx ->
-                    viewModel.getWeatherByCity(city = city)
+                onSearch = { city, _ ->
+                    getWeatherByCity(city)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -73,11 +74,11 @@ fun MainScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (
-                    viewModel.state.value.weather != null
+                    state.weather != null
                 ) {
                     Text(
                         text = WeatherCodeHelpers().formatTime(
-                            viewModel.state.value.weather!!.current.time.toLong(),
+                            state.weather.current.time.toLong(),
                             "General"
                         ),
                         modifier = Modifier.padding(18.dp),
@@ -96,7 +97,7 @@ fun MainScreen(
                             .padding(18.dp)
                     ) {
                         Text(
-                            text = "${viewModel.state.value.countryName}, ${viewModel.state.value.cityName}",
+                            text = "${state.countryName}, ${state.cityName}",
                             fontSize = 16.sp,
                             fontWeight = FontWeight(500),
                             color = Color(0xFF0DA0EA)
@@ -118,7 +119,7 @@ fun MainScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (
-                viewModel.state.value.weather != null
+                state.weather != null
             ) {
                 Row(
                     modifier = Modifier
@@ -137,8 +138,8 @@ fun MainScreen(
                         Image(
                             painter = painterResource(
                                 id = WeatherCodeHelpers().weatherCodeToResId(
-                                    weatherCode = viewModel.state.value.weather!!.current.weather_code,
-                                    isDay = viewModel.state.value.weather!!.current.is_day
+                                    weatherCode = state.weather.current.weather_code,
+                                    isDay = state.weather.current.is_day
                                 )
                             ),
                             contentDescription = "Weather Description",
@@ -147,7 +148,7 @@ fun MainScreen(
                         )
                         Text(
                             text = WeatherCodeHelpers().weatherCodeToString(
-                                weatherCode = viewModel.state.value.weather!!.current.weather_code
+                                weatherCode = state.weather.current.weather_code
                             ),
                             fontSize = 18.sp,
                             fontWeight = FontWeight(500),
@@ -161,12 +162,12 @@ fun MainScreen(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = viewModel.state.value.weather!!.current.temperature_2m.toInt()
+                            text = state.weather.current.temperature_2m.toInt()
                                 .toString(),
                             fontSize = 64.sp
                         )
                         Text(
-                            text = viewModel.state.value.weather!!.current_units.temperature_2m,
+                            text = state.weather.current_units.temperature_2m,
                             fontSize = 24.sp,
                             fontWeight = FontWeight(500),
                             color = Color(0xFF666666),
@@ -185,7 +186,7 @@ fun MainScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = viewModel.state.value.weather!!.daily.temperature_2m_max[0].toString() + viewModel.state.value.weather!!.daily_units.temperature_2m_max,
+                                text = state.weather.daily.temperature_2m_max[0].toString() + state.weather.daily_units.temperature_2m_max,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight(300),
                                 color = Color(0xFF666666)
@@ -204,7 +205,7 @@ fun MainScreen(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = viewModel.state.value.weather!!.daily.temperature_2m_min[0].toString() + viewModel.state.value.weather!!.daily_units.temperature_2m_min,
+                                text = state.weather.daily.temperature_2m_min[0].toString() + state.weather.daily_units.temperature_2m_min,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight(300),
                                 color = Color(0xFF666666)
@@ -238,7 +239,7 @@ fun MainScreen(
                             tint = Color(0xFFAAAAAA)
                         )
                         Text(
-                            text = viewModel.state.value.weather!!.current.relative_humidity_2m.toString() + "%",
+                            text = state.weather.current.relative_humidity_2m.toString() + "%",
                             fontSize = 16.sp,
                             fontWeight = FontWeight(500),
                             color = Color(0xFF444444),
@@ -263,7 +264,7 @@ fun MainScreen(
                             tint = Color(0xFFAAAAAA)
                         )
                         Text(
-                            text = viewModel.state.value.weather!!.current.surface_pressure.toString() + viewModel.state.value.weather!!.current_units.surface_pressure,
+                            text = state.weather.current.surface_pressure.toString() + state.weather.current_units.surface_pressure,
                             fontSize = 16.sp,
                             fontWeight = FontWeight(500),
                             color = Color(0xFF444444)
@@ -288,7 +289,7 @@ fun MainScreen(
                             tint = Color(0xFFAAAAAA)
                         )
                         Text(
-                            text = viewModel.state.value.weather!!.current.wind_speed_10m.toString() + viewModel.state.value.weather!!.current_units.wind_speed_10m,
+                            text = state.weather.current.wind_speed_10m.toString() + state.weather.current_units.wind_speed_10m,
                             fontSize = 16.sp,
                             fontWeight = FontWeight(500),
                             color = Color(0xFF444444),
@@ -323,7 +324,7 @@ fun MainScreen(
                         )
                         Text(
                             text = WeatherCodeHelpers().formatTime(
-                                viewModel.state.value.weather!!.daily.sunrise[0].toLong(),
+                                state.weather.daily.sunrise[0].toLong(),
                                 "Sun"
                             ),
                             fontSize = 16.sp,
@@ -351,7 +352,7 @@ fun MainScreen(
                         )
                         Text(
                             text = WeatherCodeHelpers().formatTime(
-                                viewModel.state.value.weather!!.daily.sunset[0].toLong(),
+                                state.weather.daily.sunset[0].toLong(),
                                 "Sun"
                             ),
                             fontSize = 16.sp,
@@ -379,7 +380,7 @@ fun MainScreen(
                         )
                         Text(
                             text = WeatherCodeHelpers().formatSecondsToHoursMinutes(
-                                viewModel.state.value.weather!!.daily.daylight_duration[0]
+                                state.weather.daily.daylight_duration[0]
                             ),
                             fontSize = 16.sp,
                             fontWeight = FontWeight(500),
@@ -401,19 +402,19 @@ fun MainScreen(
                         .fillMaxHeight()
                         .weight(1f)
                 ) {
-                    items(viewModel.state.value.weather!!.daily.temperature_2m_min.size) {
+                    items(state.weather.daily.temperature_2m_min.size) {
                         WeatherCard(
                             imageId = WeatherCodeHelpers().weatherCodeToResId(
-                                weatherCode = viewModel.state.value.weather!!.daily.weather_code[it],
-                                isDay = viewModel.state.value.weather!!.current.is_day
+                                weatherCode = state.weather.daily.weather_code[it],
+                                isDay = state.weather.current.is_day
                             ),
                             date = WeatherCodeHelpers().formatTime(
                                 condition = "Card",
-                                time = viewModel.state.value.weather!!.daily.time[it].toLong()
+                                time = state.weather.daily.time[it].toLong()
                             ),
-                            maxTemperature = viewModel.state.value.weather!!.daily.temperature_2m_max[it].toInt()
+                            maxTemperature = state.weather.daily.temperature_2m_max[it].toInt()
                                 .toString(),
-                            minTemperature = viewModel.state.value.weather!!.daily.temperature_2m_min[it].toInt()
+                            minTemperature = state.weather.daily.temperature_2m_min[it].toInt()
                                 .toString()
                         )
                     }

@@ -7,7 +7,7 @@ data class WeatherState(
     val weather: WeatherModel? = null,
     val loading: LoadingState = LoadingState.LOADING,
     val isNetworkAvailable: Boolean = false,
-    val isLocationAvailable: Boolean = false,
+    var isLocationPermissionGranted: Boolean = false,
     val cityName: String = "",
     val countryName: String = "",
 )

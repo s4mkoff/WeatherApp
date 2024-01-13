@@ -35,48 +35,73 @@ import com.s4mkoff.weatherapp.ui.theme.WeatherAppTheme
 class MainActivity : ComponentActivity() {
 
     private lateinit var viewModel: WeatherViewModel
-    private lateinit var locationClient: FusedLocationProviderClient
-    private lateinit var locationCallback: LocationCallback
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = WeatherViewModelFactory().create(WeatherViewModel::class.java)
-        locationClient = WeatherApp.weatherModule.fusedLocalManager
-        val permissionLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions()
-        ) {
-            requestUpdates()
-        }
-        permissionLauncher.launch(
-            arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-        )
+        requestPermission()
+        connectivity()
         setContent {
             WeatherAppTheme {
-                MainScreen(viewModel = viewModel)
+                MainScreen(
+                    state = viewModel.state.value,
+                    getWeatherByCity = {
+                            city -> viewModel.getWeatherByCity(city)
+                    }
+                )
             }
         }
     }
 
-    @SuppressLint("MissingPermission")
-    fun requestUpdates(
-    ) {
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(p0: LocationResult) {
-                Log.v("Locality", "${p0.lastLocation}")
-                if (p0.lastLocation!=null) {
-                    viewModel.getWeatherByLocation()
-                    locationClient.removeLocationUpdates(locationCallback)
-                }
+    private fun requestPermission() {
+        val permissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { isGranted: Map<String, Boolean> ->
+            if (!isGranted.containsValue(false)) {
+                viewModel.state.value.isLocationPermissionGranted = false
+            } else {
+                viewModel.state.value.isLocationPermissionGranted = true
             }
         }
-        val locationRequest = LocationRequest().setFastestInterval(0).setMaxWaitTime(0).setNumUpdates(1).setSmallestDisplacement(0f).setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-        if (locationAvailability()) {
-            locationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
-            return
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                viewModel.state.value.isLocationPermissionGranted = true
+            }
+            else -> {
+                permissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            }
         }
     }
+
+//    @SuppressLint("MissingPermission")
+//    fun requestUpdates(
+//    ) {
+//        locationCallback = object : LocationCallback() {
+//            override fun onLocationResult(p0: LocationResult) {
+//                Log.v("Locality", "${p0.lastLocation}")
+//                if (p0.lastLocation!=null) {
+//                    viewModel.getWeatherByLocation()
+//                    locationClient.removeLocationUpdates(locationCallback)
+//                }
+//            }
+//        }
+//        val locationRequest = LocationRequest().setFastestInterval(0).setMaxWaitTime(0).setNumUpdates(1).setSmallestDisplacement(0f).setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+//        if (locationAvailability()) {
+//            locationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+//            return
+//        }
+//    }
 
     fun locationAvailability(): Boolean {
         val hasAccessFineLocationPermission = ContextCompat.checkSelfPermission(
@@ -103,8 +128,9 @@ class MainActivity : ComponentActivity() {
         val networkCallback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
                 WeatherApp.networkState = NetworkState.AVAILABLE
-                if (viewModel.state.value.loading != LoadingState.SUCCESS) {
-//                    viewModel.getWeatherByLocation()
+                if (viewModel.state.value.loading != LoadingState.SUCCESS
+                    && viewModel.state.value.isLocationPermissionGranted) {
+                    viewModel.getWeatherByLocation()
                 }
                 super.onAvailable(network)
             }

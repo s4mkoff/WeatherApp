@@ -59,7 +59,7 @@ class WeatherModuleImpl(
     }
     override val weatherUseCase: WeatherUseCases by lazy {
         WeatherUseCases(
-            GetWeatherByLocation(weatherRepository, locationRepository),
+            GetWeatherByLocation(weatherRepository, locationRepository, geocoder),
             GetWeatherByCity(geocoder)
         )
     }
