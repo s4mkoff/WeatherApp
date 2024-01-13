@@ -1,6 +1,5 @@
 package com.s4mkoff.weatherapp.features.weather.presentation.main_screen
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -39,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import com.s4mkoff.weatherapp.R
 import com.s4mkoff.weatherapp.WeatherApp
 import com.s4mkoff.weatherapp.features.weather.domain.model.MyWeather
+import com.s4mkoff.weatherapp.features.weather.domain.util.LoadingState
 import com.s4mkoff.weatherapp.features.weather.domain.util.NetworkState
 import com.s4mkoff.weatherapp.features.weather.presentation.main_screen.components.SearchBar
 import com.s4mkoff.weatherapp.features.weather.presentation.main_screen.components.WeatherCard
@@ -94,10 +94,7 @@ fun MainScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Log.v("WeatherState", "State: ${state.loading}")
-                if (
-                    state.weather != null
-                ) {
+                if (state.weather != null) {
                     Text(
                         text = MyWeather.WeatherHelper.formatTime(
                             state.weather.current.time.toLong(),
@@ -140,331 +137,357 @@ fun MainScreen(
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (
-                state.weather != null
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                        .weight(1f),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+            when (state.loading.value) {
+                LoadingState.LOADING -> {
                     Column(
+                        modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Image(
-                            painter = painterResource(
-                                id = MyWeather.WeatherHelper.weatherCodeToResId(
-                                    weatherCode = state.weather.current.weather_code,
-                                    isDay = state.weather.current.is_day
-                                )
-                            ),
-                            contentDescription = "Weather Description",
-                            modifier = Modifier
-                                .size(40.dp)
-                        )
-                        Text(
-                            text = MyWeather.WeatherHelper.weatherCode(
-                                state.weather.current.weather_code
-                            ),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFF000000)
-                        )
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = state.weather.current.temperature_2m.toInt()
-                                .toString(),
-                            fontSize = 64.sp
-                        )
-                        Text(
-                            text = state.weather.current_units.temperature_2m,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFF666666),
-                            modifier = Modifier.padding(top = 11.dp)
-                        )
-                    }
-                    Column(
-                        verticalArrangement = Arrangement.SpaceEvenly,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
+                        if (state.firstLoad && !state.isLocationPermissionGranted) {
                             Text(
-                                text = state.weather.daily.temperature_2m_max[0].toString() + state.weather.daily_units.temperature_2m_max,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight(300),
-                                color = Color(0xFF666666)
+                                text = "Can't load data, because of lack of permission or location service disabled. \n But you still can try searching!",
+                                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp),
+                                textAlign = TextAlign.Center,
+                                fontSize = MaterialTheme.typography.titleLarge.fontSize
                             )
-                            Icon(
-                                painter = painterResource(id = R.drawable.temperature_up),
-                                contentDescription = "Temperature Max",
-                                modifier = Modifier.padding(start = 1.dp),
-                                tint = Color(0xFFAAAAAA)
+                        } else {
+                            Text(
+                                text = "Loading your data",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                                fontSize = MaterialTheme.typography.titleLarge.fontSize
+                            )
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .size(50.dp)
                             )
                         }
+                    }
+                }
+                LoadingState.SUCCESS -> {
+                    if (
+                        state.weather != null
+                    ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 12.dp),
-                            horizontalArrangement = Arrangement.Center
+                                .fillMaxHeight()
+                                .weight(1f),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = state.weather.daily.temperature_2m_min[0].toString() + state.weather.daily_units.temperature_2m_min,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight(300),
-                                color = Color(0xFF666666)
-                            )
-                            Icon(
-                                painter = painterResource(id = R.drawable.temperature_down),
-                                contentDescription = "Temperature Min",
-                                modifier = Modifier.padding(start = 1.dp),
-                                tint = Color(0xFFAAAAAA)
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                            ) {
+                                Image(
+                                    painter = painterResource(
+                                        id = MyWeather.WeatherHelper.weatherCodeToResId(
+                                            weatherCode = state.weather.current.weather_code,
+                                            isDay = state.weather.current.is_day
+                                        )
+                                    ),
+                                    contentDescription = "Weather Description",
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                )
+                                Text(
+                                    text = MyWeather.WeatherHelper.weatherCode(
+                                        state.weather.current.weather_code
+                                    ),
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight(500),
+                                    color = Color(0xFF000000)
+                                )
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = state.weather.current.temperature_2m.toInt()
+                                        .toString(),
+                                    fontSize = 64.sp
+                                )
+                                Text(
+                                    text = state.weather.current_units.temperature_2m,
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight(500),
+                                    color = Color(0xFF666666),
+                                    modifier = Modifier.padding(top = 11.dp)
+                                )
+                            }
+                            Column(
+                                verticalArrangement = Arrangement.SpaceEvenly,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = state.weather.daily.temperature_2m_max[0].toString() + state.weather.daily_units.temperature_2m_max,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight(300),
+                                        color = Color(0xFF666666)
+                                    )
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.temperature_up),
+                                        contentDescription = "Temperature Max",
+                                        modifier = Modifier.padding(start = 1.dp),
+                                        tint = Color(0xFFAAAAAA)
+                                    )
+                                }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 12.dp),
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = state.weather.daily.temperature_2m_min[0].toString() + state.weather.daily_units.temperature_2m_min,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight(300),
+                                        color = Color(0xFF666666)
+                                    )
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.temperature_down),
+                                        contentDescription = "Temperature Min",
+                                        modifier = Modifier.padding(start = 1.dp),
+                                        tint = Color(0xFFAAAAAA)
+                                    )
+                                }
+                            }
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight()
+                                .weight(1f),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.humidity),
+                                    contentDescription = "Humidity",
+                                    tint = Color(0xFFAAAAAA)
+                                )
+                                Text(
+                                    text = state.weather.current.relative_humidity_2m.toString() + "%",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight(500),
+                                    color = Color(0xFF444444),
+                                )
+                                Text(
+                                    text = "Humidity",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight(500),
+                                    color = Color(0xFF999999),
+                                    letterSpacing = 0.8.sp
+                                )
+                            }
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.barometer),
+                                    contentDescription = "Barometer",
+                                    tint = Color(0xFFAAAAAA)
+                                )
+                                Text(
+                                    text = state.weather.current.surface_pressure.toString() + state.weather.current_units.surface_pressure,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight(500),
+                                    color = Color(0xFF444444)
+                                )
+                                Text(
+                                    text = "Pressure",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight(500),
+                                    color = Color(0xFF999999),
+                                    letterSpacing = 0.8.sp
+                                )
+                            }
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.wind),
+                                    contentDescription = "Wind",
+                                    tint = Color(0xFFAAAAAA)
+                                )
+                                Text(
+                                    text = state.weather.current.wind_speed_10m.toString() + state.weather.current_units.wind_speed_10m,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight(500),
+                                    color = Color(0xFF444444),
+                                )
+                                Text(
+                                    text = "Wind",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight(500),
+                                    color = Color(0xFF999999),
+                                    letterSpacing = 0.8.sp
+                                )
+                            }
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight()
+                                .weight(1f),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.sunrise),
+                                    contentDescription = "Sunrise",
+                                    tint = Color(0xFFAAAAAA)
+                                )
+                                Text(
+                                    text = MyWeather.WeatherHelper.formatTime(
+                                        state.weather.daily.sunrise[0].toLong(),
+                                        "Sun"
+                                    ),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight(500),
+                                    color = Color(0xFF444444),
+                                )
+                                Text(
+                                    text = "Sunrise",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight(500),
+                                    color = Color(0xFF999999),
+                                    letterSpacing = 0.8.sp
+                                )
+                            }
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.sunset),
+                                    contentDescription = "Sunset",
+                                    tint = Color(0xFFAAAAAA)
+                                )
+                                Text(
+                                    text = MyWeather.WeatherHelper.formatTime(
+                                        state.weather.daily.sunset[0].toLong(),
+                                        "Sun"
+                                    ),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight(500),
+                                    color = Color(0xFF444444),
+                                )
+                                Text(
+                                    text = "Sunset",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight(500),
+                                    color = Color(0xFF999999),
+                                    letterSpacing = 0.8.sp
+                                )
+                            }
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.daytime),
+                                    contentDescription = "Sand-clock",
+                                    tint = Color(0xFFAAAAAA)
+                                )
+                                Text(
+                                    text = MyWeather.WeatherHelper.formatSecondsToHoursMinutes(
+                                        state.weather.daily.daylight_duration[0]
+                                    ),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight(500),
+                                    color = Color(0xFF444444),
+                                )
+                                Text(
+                                    text = "Daytime",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight(500),
+                                    color = Color(0xFF999999),
+                                    letterSpacing = 0.8.sp
+                                )
+                            }
+                        }
+                        LazyRow(
+                            contentPadding = PaddingValues(start = 19.dp),
+                            horizontalArrangement = Arrangement.spacedBy(20.dp),
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .weight(1f)
+                        ) {
+                            items(state.weather.daily.temperature_2m_min.size) {
+                                WeatherCard(
+                                    imageId = MyWeather.WeatherHelper.weatherCodeToResId(
+                                        weatherCode = state.weather.daily.weather_code[it],
+                                        isDay = state.weather.current.is_day
+                                    ),
+                                    date = MyWeather.WeatherHelper.formatTime(
+                                        condition = "Card",
+                                        time = state.weather.daily.time[it].toLong()
+                                    ),
+                                    maxTemperature = state.weather.daily.temperature_2m_max[it].toInt()
+                                        .toString(),
+                                    minTemperature = state.weather.daily.temperature_2m_min[it].toInt()
+                                        .toString()
+                                )
+                            }
                         }
                     }
                 }
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                        .weight(1f),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                LoadingState.ERROR -> {
                     Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.humidity),
-                            contentDescription = "Humidity",
-                            tint = Color(0xFFAAAAAA)
-                        )
-                        Text(
-                            text = state.weather.current.relative_humidity_2m.toString() + "%",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFF444444),
-                        )
-                        Text(
-                            text = "Humidity",
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFF999999),
-                            letterSpacing = 0.8.sp
-                        )
-                    }
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.barometer),
-                            contentDescription = "Barometer",
-                            tint = Color(0xFFAAAAAA)
-                        )
-                        Text(
-                            text = state.weather.current.surface_pressure.toString() + state.weather.current_units.surface_pressure,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFF444444)
-                        )
-                        Text(
-                            text = "Pressure",
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFF999999),
-                            letterSpacing = 0.8.sp
-                        )
-                    }
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.wind),
-                            contentDescription = "Wind",
-                            tint = Color(0xFFAAAAAA)
-                        )
-                        Text(
-                            text = state.weather.current.wind_speed_10m.toString() + state.weather.current_units.wind_speed_10m,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFF444444),
-                        )
-                        Text(
-                            text = "Wind",
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFF999999),
-                            letterSpacing = 0.8.sp
-                        )
-                    }
-                }
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                        .weight(1f),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.sunrise),
-                            contentDescription = "Sunrise",
-                            tint = Color(0xFFAAAAAA)
-                        )
-                        Text(
-                            text = MyWeather.WeatherHelper.formatTime(
-                                state.weather.daily.sunrise[0].toLong(),
-                                "Sun"
-                            ),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFF444444),
-                        )
-                        Text(
-                            text = "Sunrise",
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFF999999),
-                            letterSpacing = 0.8.sp
-                        )
-                    }
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.sunset),
-                            contentDescription = "Sunset",
-                            tint = Color(0xFFAAAAAA)
-                        )
-                        Text(
-                            text = MyWeather.WeatherHelper.formatTime(
-                                state.weather.daily.sunset[0].toLong(),
-                                "Sun"
-                            ),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFF444444),
-                        )
-                        Text(
-                            text = "Sunset",
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFF999999),
-                            letterSpacing = 0.8.sp
-                        )
-                    }
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.daytime),
-                            contentDescription = "Sand-clock",
-                            tint = Color(0xFFAAAAAA)
-                        )
-                        Text(
-                            text = MyWeather.WeatherHelper.formatSecondsToHoursMinutes(
-                                state.weather.daily.daylight_duration[0]
-                            ),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFF444444),
-                        )
-                        Text(
-                            text = "Daytime",
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight(500),
-                            color = Color(0xFF999999),
-                            letterSpacing = 0.8.sp
-                        )
-                    }
-                }
-                LazyRow(
-                    contentPadding = PaddingValues(start = 19.dp),
-                    horizontalArrangement = Arrangement.spacedBy(20.dp),
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(1f)
-                ) {
-                    items(state.weather.daily.temperature_2m_min.size) {
-                        WeatherCard(
-                            imageId = MyWeather.WeatherHelper.weatherCodeToResId(
-                                weatherCode = state.weather.daily.weather_code[it],
-                                isDay = state.weather.current.is_day
-                            ),
-                            date = MyWeather.WeatherHelper.formatTime(
-                                condition = "Card",
-                                time = state.weather.daily.time[it].toLong()
-                            ),
-                            maxTemperature = state.weather.daily.temperature_2m_max[it].toInt()
-                                .toString(),
-                            minTemperature = state.weather.daily.temperature_2m_min[it].toInt()
-                                .toString()
-                        )
-                    }
-                }
-            } else {
-//                if (viewModel.doFirstSearch) {
-//                    Text(
-//                        text = "Search your city!",
-//                        modifier = Modifier.fillMaxSize(),
-//                        textAlign = TextAlign.Center,
-//                        fontSize = MaterialTheme.typography.titleLarge.fontSize
-//                    )
-//                } else
-                if (WeatherApp.networkState == NetworkState.UNAVAILABLE) {
-                    Column(
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "Turn on internet!",
+                            text = "Error occured",
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center,
                             fontSize = MaterialTheme.typography.titleLarge.fontSize
                         )
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                        )
+                        if (WeatherApp.networkState == NetworkState.UNAVAILABLE) {
+                            Text(
+                                text = "Internet unaviable",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                                fontSize = MaterialTheme.typography.titleLarge.fontSize
+                            )
+                        }
                     }
                 }
             }

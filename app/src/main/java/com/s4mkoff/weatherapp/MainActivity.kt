@@ -33,8 +33,8 @@ class MainActivity : ComponentActivity() {
             WeatherAppTheme {
                 MainScreen(
                     state = viewModel.state.value,
-                    getWeatherByCity = {
-                            city -> viewModel.getWeatherByLocation(city)
+                    getWeatherByCity = { city ->
+                        viewModel.getWeatherByLocation(city)
                     }
                 )
             }

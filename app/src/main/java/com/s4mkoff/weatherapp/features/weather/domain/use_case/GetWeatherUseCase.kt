@@ -2,10 +2,11 @@ package com.s4mkoff.weatherapp.features.weather.domain.use_case
 
 import android.location.Address
 import android.location.Geocoder
-import android.util.Log
+import com.s4mkoff.weatherapp.WeatherApp
 import com.s4mkoff.weatherapp.features.weather.domain.model.MyWeather
 import com.s4mkoff.weatherapp.features.weather.domain.repository.LocationRepository
 import com.s4mkoff.weatherapp.features.weather.domain.repository.WeatherRepository
+import com.s4mkoff.weatherapp.features.weather.domain.util.NetworkState
 
 class GetWeatherUseCase(
     private val weatherRepo: WeatherRepository,
@@ -13,7 +14,15 @@ class GetWeatherUseCase(
     private val geocoder: Geocoder
 ) {
     suspend operator fun invoke(city: String = ""): MyWeather {
-        Log.v("Failure", "GetWeatherUseCase")
+        if (WeatherApp.networkState==NetworkState.UNAVAILABLE) {
+            return MyWeather(
+                latitude = "",
+                longitude = "",
+                cityName = "",
+                locationName = "",
+                weather = null
+            )
+        }
         val adress: MutableList<Address>? = if (city == "") {
             val location = locationRepo.getLocation()
             if (location != null) {

@@ -1,6 +1,5 @@
 package com.s4mkoff.weatherapp.features.weather.presentation.main_screen
 
-import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -24,24 +23,24 @@ class WeatherViewModel(
     fun getWeatherByLocation(
         city: String = ""
     ) {
-        Log.v("Failure", "GetWeatherUseCase0")
         getWeatherJob?.cancel()
         _state.value = state.value.copy(
-            loading = LoadingState.LOADING
+            loading = mutableStateOf(LoadingState.LOADING),
+            firstLoad = false
         )
         getWeatherJob = CoroutineScope(Dispatchers.IO).launch {
             weatherUseCase.getWeatherUseCase(city).apply {
                 if (this.weather!=null) {
                     _state.value = state.value.copy(
                         weather = this.weather,
-                        loading = LoadingState.SUCCESS,
+                        loading = mutableStateOf(LoadingState.SUCCESS),
                         cityName = this.cityName,
                         countryName = this.locationName
                     )
                 } else {
                     _state.value = state.value.copy(
                         weather = state.value.weather,
-                        loading = LoadingState.ERROR,
+                        loading = mutableStateOf(LoadingState.ERROR),
                         cityName = state.value.cityName,
                         countryName = state.value.countryName
                     )
